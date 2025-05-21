@@ -69,6 +69,17 @@ app.post('/v1/simulation/initiate_order_flow', async (req, res) => {
   }
 });
 
+app.get('/my-ip', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.ipify.org?format=json');
+    console.log('Outbound IP:', response.data.ip); // Logs to console
+    res.json({ ip: response.data.ip }); // Sends it as a response
+  } catch (err) {
+    console.error('Error fetching IP:', err.message);
+    res.status(500).send('Failed to fetch outbound IP');
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Porter Proxy Server running at http://localhost:${PORT}`);
