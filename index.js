@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const porterRoutes = require('./routers/porter'); // adjust path as needed
+const axios = require('axios');
 
 const app = express();
 const PORT = 3000;
@@ -8,12 +8,68 @@ const PORT = 3000;
 app.use(express.json());
 app.use(cors());
 
+// Base URL for Porter API (UAT environment)
+const PORTER_BASE_URL = 'https://pfe-apigw-uat.porter.in';
+const API_KEY = '659d4aaf-3797-4186-b7c3-2c231f5d0e22'; // Using the key from your example
+
+// Root endpoint
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Porter API Proxy Server');
 });
 
-app.use('/porter', porterRoutes);
+// Porter initiate_order_flow endpoint
+app.post('/v1/simulation/initiate_order_flow', async (req, res) => {
+  try {
+    const { order_id, flow_type } = req.body;
+    
+    // Validate required parameters
+    if (!order_id || flow_type === undefined) {
+      return res.status(400).json({ 
+        error: 'Missing required parameters. Both order_id and flow_type are required.' 
+      });
+    }
+    
+    console.log(`Forwarding request to initiate order flow for order: ${order_id} with flow type: ${flow_type}`);
+    
+    // Make request to Porter API
+    const response = await axios({
+      method: 'POST',
+      url: `${PORTER_BASE_URL}/v1/simulation/initiate_order_flow`,
+      headers: {
+        'X-API-KEY': API_KEY,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        order_id,
+        flow_type
+      }
+    });
+    
+    console.log('Response from Porter API:', response.data);
+    
+    // Forward the response back to the client
+    return res.status(response.status).json(response.data);
+    
+  } catch (error) {
+    console.error('Error calling Porter API:', error.message);
+    
+    // Handle error response from Porter API
+    if (error.response) {
+      return res.status(error.response.status).json({
+        error: 'Porter API error',
+        details: error.response.data
+      });
+    }
+    
+    // Handle network errors
+    return res.status(500).json({
+      error: 'Failed to communicate with Porter API',
+      message: error.message
+    });
+  }
+});
 
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Porter Proxy Server running at http://localhost:${PORT}`);
 });
