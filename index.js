@@ -18,6 +18,7 @@ const API_KEY = process.env.TOKEN ; // Fallback to hardcoded key if env var not 
 // Root endpoint
 app.get('/', (req, res) => {
   res.send('Porter API Proxy Server');
+  console.log(API_KEY);
 });
 
 // Porter initiate_order_flow endpoint
@@ -94,7 +95,7 @@ app.get('/my-ip', async (req, res) => {
   try {
     const response = await axios.get('https://api.ipify.org?format=json');
     console.log('Outbound IP:', response.data.ip); // Logs to console
-    res.json({ ip: response.data.ip }); // Sends it as a response
+    res.json({ ip: response.data.ip }); // Sends it as a responseFCX
   } catch (err) {
     console.error('Error fetching IP:', err.message);
     res.status(500).send('Failed to fetch outbound IP');
