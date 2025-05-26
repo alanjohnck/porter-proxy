@@ -1,16 +1,19 @@
+// Load environment variables from .env.local file
+require('dotenv').config({ path: '.env.local' });
+
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
 
 // Base URL for Porter API (UAT environment)
-const PORTER_BASE_URL = 'https://pfe-apigw-uat.porter.in';
-const API_KEY = '659d4aaf-3797-4186-b7c3-2c231f5d0e22'; // Using the key from your example
+const PORTER_BASE_URL = process.env.PFE_API_GW_URL ;
+const API_KEY = process.env.TOKEN ; // Fallback to hardcoded key if env var not set
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -68,7 +71,25 @@ app.post('/v1/simulation/initiate_order_flow', async (req, res) => {
     });
   }
 });
+app.post('/api/create_order', async (req, res) => {
+  try {
+    const porterUrl = `${PORTER_BASE_URL}/v1/orders/create`;
 
+    const response = await axios.post(porterUrl, req.body, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+      },
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error('Error creating order:', error.message);
+    const status = error.response?.status || 500;
+    const data = error.response?.data || { message: 'Server Error' };
+    res.status(status).json(data);
+  }
+});
 app.get('/my-ip', async (req, res) => {
   try {
     const response = await axios.get('https://api.ipify.org?format=json');
