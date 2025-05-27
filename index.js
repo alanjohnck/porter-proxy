@@ -79,7 +79,7 @@ app.post('/api/create_order', async (req, res) => {
     const response = await axios.post(porterUrl, req.body, {
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': API_KEY,
+        'x-api-key': API_KEY,
       },
     });
 
